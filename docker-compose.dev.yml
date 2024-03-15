@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  nginx:
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/conf.d/nginx.conf
+  frontend:
+    build: 
+      context: frontend
+      dockerfile: Dockerfile.dev
+    command: npm start
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    stdin_open: true
+    tty: true
+  api:
+    command: "npm run dev"
+    volumes:
+      - ./api/src:/usr/src/app/src

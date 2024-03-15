@@ -22,10 +22,6 @@
   border-radius: 4px;
 }
 
-.return-store-button {
-  background-color: #28a745;
-}
-
 .product-name {
   font-size: 18px;
   font-weight: bold;
@@ -46,9 +42,4 @@
 
 .add-to-cart-button:hover {
   opacity: 0.8;
-}
-
-.product-image {
-  max-width: 100px;
-  max-height: 100px;
 }

@@ -4,6 +4,7 @@ const connection = require("./utils/db.js");
 const { User } = require("./models/user");
 const Shop = require('./models/shop');
 const Drug = require('./models/drug');
+const Order = require('./models/order.js');
 const { port, host } = require("./index.js");
 require('dotenv').config();
 const mongoose = require("mongoose");
@@ -17,12 +18,13 @@ const DataInitialization = mongoose.model('DataInitialization',  new mongoose.Sc
   }));
 
 const drugsData = [
-    { name: 'Paracetamol', price: 5, image: 'paracetamol.jpg' },
-    { name: 'Aspirin', price: 3, image: 'aspirin.jpg' },
-    { name: 'Ibuprofen', price: 7, image: 'ibuprofen.jpg' },
-    { name: 'Cough Syrup', price: 8, image: 'cough_syrup.jpg' },
-    { name: 'Antibiotics', price: 15, image: 'antibiotics.jpg' }
+  { name: 'Paracetamol', price: 5, image: 'paracetamol.jpg', dateAdded: '2023-05-01' },
+  { name: 'Aspirin', price: 3, image: 'aspirin.jpg', dateAdded: '2023-04-15' },
+  { name: 'Ibuprofen', price: 7, image: 'ibuprofen.jpg', dateAdded: '2023-03-20' },
+  { name: 'Cough Syrup', price: 8, image: 'cough_syrup.jpg', dateAdded: '2023-02-10' },
+  { name: 'Antibiotics', price: 15, image: 'antibiotics.jpg', dateAdded: '2023-01-05' }
 ];
+  
 
 app.get('/', (req,res) => {
     res.send("Server is working correctly")
@@ -114,15 +116,24 @@ app.get('/getDrugs', async (req, res) => {
 });
 
 app.get('/getShopIds', async (req, res) => {
+  try {
+    const shopIds = await Shop.find({}, { _id: 1, name: 1 });
+    res.json(shopIds);
+  } catch (e) {
+    res.status(500).send(e.message);
+  }
+});
+
+app.post('/saveCart', async (req, res) => {
     try {
-        //const shopIds = await Shop.find().select('name _id');
-        const shopIds = await Shop.find().distinct('_id');
-        res.json(shopIds);
-    } catch (e) {
-      res.status(500).send(e.message);
-    }
-  });
+      const { email, phoneNumber, address, cart } = req.body;
+      const savedCart = await Order.create({ email, phoneNumber, address, products: cart });
   
+      res.status(200).json(savedCart);
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+});
 
 connection.on('error', console.error.bind(console, 'connection error:'));
 connection.once('open', startServer);

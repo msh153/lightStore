@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import './ShippingCardPage.css';
+import { CartContext } from './App';
 
-function ShippingCardPage({ storedProducts, setStoredProducts, goToStore, prices }) {
+function ShippingCardPage({ goToStore, prices }) {
+  const { total, setTotal, storedProducts, setStoredProducts, calculateTotalPrice } = useContext(CartContext);
+
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [address, setAddress] = useState('');
-  const [total, setTotal] = useState(0);
-  const [quantityInputs, setQuantityInputs] = useState({});
-
-  // Calculate total
+  
+  useEffect(() => {
+    const totalPrice = calculateTotalPrice();
+    setTotal(totalPrice);
+  }, [storedProducts, prices, calculateTotalPrice, setTotal]);
+  
   useEffect(() => {
     let totalPrice = 0;
     for (const productName in storedProducts) {
@@ -17,12 +22,14 @@ function ShippingCardPage({ storedProducts, setStoredProducts, goToStore, prices
       totalPrice += price * quantity;
     }
     setTotal(totalPrice);
-  }, [storedProducts, prices]);
+  }, [storedProducts, prices, setTotal]);
+
 
   const removeFromCart = (productName) => {
     const updatedCart = { ...storedProducts };
     delete updatedCart[productName];
     setStoredProducts(updatedCart);
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
   
     // Recalculate total
     let totalPrice = 0;
@@ -34,6 +41,22 @@ function ShippingCardPage({ storedProducts, setStoredProducts, goToStore, prices
   };
   
 
+  const handleQuantityChange = (productName, newQuantity) => {
+    const updatedCart = { ...storedProducts };
+    updatedCart[productName] = parseInt(newQuantity, 10);
+    setStoredProducts(updatedCart);
+  
+    // Update localStorage
+    localStorage.setItem('cart', JSON.stringify(updatedCart));
+    // Recalculate total price
+    let totalPrice = 0;
+    for (const [name, quantity] of Object.entries(updatedCart)) {
+      const price = prices[name] || 0;
+      totalPrice += price * quantity;
+    }
+    setTotal(totalPrice);
+  };
+  
   const submitCart = async () => {
     try {
       const response = await fetch('http://localhost:3001/saveCart', {
@@ -68,22 +91,7 @@ function ShippingCardPage({ storedProducts, setStoredProducts, goToStore, prices
       const parsedCart = JSON.parse(storedCart);
       setStoredProducts(parsedCart);
     }
-  }, []);
-  
-  const handleQuantityChange = (productName, newQuantity) => {
-    const updatedCart = { ...storedProducts };
-    updatedCart[productName] = parseInt(newQuantity, 10);
-    setStoredProducts(updatedCart);
-  
-    // Recalculate total price
-    let totalPrice = 0;
-    for (const [name, quantity] of Object.entries(updatedCart)) {
-      const price = prices[name] || 0;
-      totalPrice += price * quantity;
-    }
-    setTotal(totalPrice);
-  };
-  
+  }, []);  
   
   return (
     <div className="shipping-card-page">
@@ -123,11 +131,11 @@ function ShippingCardPage({ storedProducts, setStoredProducts, goToStore, prices
                 <input
                   type="number"
                   min="0"
-                  value={quantityInputs[productName] || quantity}
+                  value={quantity}
                   onChange={(e) => handleQuantityChange(productName, e.target.value)}
                 />
               </label>
-              <label className="product-price">Price: ${prices[productName] || 0}</label>
+              <label className="product-price">Price: ${prices[productName] * quantity || 0}</label>
             </div>
             <button className="remove-button" onClick={() => removeFromCart(productName)}>
               Remove

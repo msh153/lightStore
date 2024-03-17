@@ -1,0 +1,15 @@
+nav ul{
+  display: flex;
+  align-content: flex-end;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  list-style-type: none;
+}
+a, li {
+  text-decoration: none;
+}
+
+nav .active {
+  font-weight: bold;
+  color: red; /* or any other style you prefer */
+}

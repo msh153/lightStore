@@ -1,7 +1,6 @@
 const express = require("express");
 const bodyParser = require('body-parser')
 const connection = require("./utils/db.js");
-const { User } = require("./models/user");
 const Shop = require('./models/shop');
 const Drug = require('./models/drug');
 const Order = require('./models/order.js');
@@ -32,23 +31,6 @@ app.get('/', (req,res) => {
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }));
-
-app.post('/addUser', async (req,res) => {
-    try{
-        const user = new User({name: req.body.userName, age: req.body.userAge});
-        await user.save();
-    } catch(e){
-        res.send(e.message);
-    }    
-});
-
-app.post('/deleteUser', async (req,res) => {
-    try{
-        await User.deleteOne({ _id: req.body._id });
-    } catch(e){
-        res.send(e.message);
-    }    
-});
 
 app.use(async (req, res, next) => {
     try {
@@ -134,6 +116,29 @@ app.post('/saveCart', async (req, res) => {
       res.status(500).json({ message: error.message });
     }
 });
+
+app.post('/getOrders', async (req, res) => {
+  try {
+    console.log(req.query)
+    const { email, phoneNumber, orderId } = req.query;
+
+    const query = {};
+    if (email) query.email = email;
+    if (phoneNumber) query.phoneNumber = phoneNumber;
+    if (orderId) query._id = orderId;
+
+    const orders = await Order.find(query, '-_id');
+    console.log(orders);
+
+    res.json(orders);
+
+
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ error: 'Failed to fetch orders' });
+  }
+});
+
 
 connection.on('error', console.error.bind(console, 'connection error:'));
 connection.once('open', startServer);

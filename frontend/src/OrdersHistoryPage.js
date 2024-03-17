@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
+import './ShippingCardPage.css';
+import { CartContext } from './App';
 
 const OrdersHistoryPage = () => {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [orderId, setOrderId] = useState('');
   const [orders, setOrders] = useState([]);
+  const { prices } = useContext(CartContext);
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -17,7 +20,7 @@ const OrdersHistoryPage = () => {
   const handleOrderIdChange = (e) => {
     setOrderId(e.target.value);
   };
-
+  
   const fetchOrders = async () => {
     try {
       const response = await fetch('http://localhost:3001/getOrders', {
@@ -40,8 +43,7 @@ const OrdersHistoryPage = () => {
   };
 
   return (
-    <div>
-      <h1>Orders History</h1>
+    <div className="orders-history">
       <div>
         <label htmlFor="email">Email:</label>
         <input type="email" id="email" value={email} onChange={handleEmailChange} />
@@ -62,7 +64,16 @@ const OrdersHistoryPage = () => {
             <div>Email: {order.email}</div>
             <div>Phone Number: {order.phoneNumber}</div>
             <div>Address: {order.address}</div>
-            <div>Cart: {JSON.stringify(order.cart)}</div>
+            <div>Cart: 
+              <ol>
+                {
+                  Object.entries(order.products).map(([medication, quantity]) => {
+                    const totalCost = quantity * prices[medication];
+                    return <li>${medication}: ${quantity} x $${prices[medication].toFixed(2)} = $${totalCost.toFixed(2)}</li>;
+                  })
+                  }
+                </ol>
+              </div>
           </li>
         ))}
       </ul>

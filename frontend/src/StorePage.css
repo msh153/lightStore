@@ -10,6 +10,10 @@
 .product-list {
   list-style: none;
   padding: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-items: stretch;
 }
 
 .product-list-item {
@@ -31,15 +35,25 @@
   font-size: 16px;
 }
 
-.add-to-cart-button {
+.submit-cart-button {
   background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
 }
 
-.add-to-cart-button:hover {
-  opacity: 0.8;
+.return-store-button {
+  background-color: #28a745;
+  font-weight: bold;
+  position: fixed;
+  bottom: 0;
+}
+
+.remove-button {
+  background-color: #dc3545;
+}
+.favorite-button{
+  background-color: wheat;
+}
+
+.sorting{
+  display: flex;
+  justify-content: space-evenly;
 }

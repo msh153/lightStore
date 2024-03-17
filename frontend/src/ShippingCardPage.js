@@ -1,9 +1,10 @@
 import React, { useEffect, useContext, useState } from 'react';
 import './ShippingCardPage.css';
 import { CartContext } from './App';
+import { Link } from 'react-router-dom';
 
-function ShippingCardPage({ goToStore, prices }) {
-  const { total, setTotal, storedProducts, setStoredProducts, calculateTotalPrice } = useContext(CartContext);
+function ShippingCardPage() {
+  const { total, setTotal, storedProducts, setStoredProducts, calculateTotalPrice, prices } = useContext(CartContext);
 
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -95,7 +96,6 @@ function ShippingCardPage({ goToStore, prices }) {
   
   return (
     <div className="shipping-card-page">
-      <h1>Shipping Card</h1>
       <div className="shipping-details">
         <label htmlFor="email">Email:</label>
         <input
@@ -145,7 +145,7 @@ function ShippingCardPage({ goToStore, prices }) {
     </ul>
       <div className="total-price">Total Price: ${total}</div>
       <button className='submit-cart-button' onClick={submitCart}>Submit Cart</button>
-      <button className='return-store-button' onClick={goToStore}>Return to Store</button>
+      <Link className='return-store-button' to="/" >Return to Store</Link>
     </div>
   );
 }

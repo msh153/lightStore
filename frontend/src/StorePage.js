@@ -1,6 +1,8 @@
 import React, { useMemo, useEffect, useState, memo, useContext } from 'react';
+import './StorePage.css';
 import './App.css';
 import { CartContext } from './App';
+import { Link } from 'react-router-dom';
 
 
 const sortByPrice = (products, sortOrder) => {
@@ -31,25 +33,25 @@ const Product = memo(({ product, favoriteMedicines, toggleFavorite, addToCart })
       <h3 className="product-name">{product.name}</h3>
       <p className="product-price">Price: ${product.price}</p>
       <button className="add-to-cart-button" onClick={() => addToCart(product.name)}>
-        {favoriteMedicines.includes(product.name) ? '⭐ Add to Cart' : 'Add to Cart'}
+        {'Add to Cart'}
       </button>
       <button
         className="favorite-button"
         onClick={() => toggleFavorite(product.name)}
       >
-        {favoriteMedicines.includes(product.name) ? 'Unfavorite' : 'Favorite'}
+        {favoriteMedicines.includes(product.name) ? '⭐' : '✰'}
       </button>
     </div>
   );
 });
 
-const StorePage = ({ goToCart }) => {
+const StorePage = () => {
   const [shops, setShops] = useState([]);
   const [products, setProducts] = useState({});
   const [selectedShopId, setSelectedShopId] = useState();
   const [favoriteMedicines, setFavoriteMedicines] = useState([]);
 
-  const { total, totalItems, setTotal, storedProducts, updatePrices, setStoredProducts, calculateTotalPrice, updateTotalItems } = useContext(CartContext);
+  const { total, totalItems, updatePrices, calculateTotalPrice, setStoredProducts, updateTotalItems, setTotalItems } = useContext(CartContext);
 
   const [sortBy, setSortBy] = useState('');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -61,7 +63,7 @@ const StorePage = ({ goToCart }) => {
     if (savedFavorites) {
       setFavoriteMedicines(JSON.parse(savedFavorites));
     }
-
+    
     const getAllShops = async () => {
       const response = await fetch('http://localhost:3001/getShopIds');
       const data = await response.json();
@@ -84,6 +86,8 @@ const StorePage = ({ goToCart }) => {
       return acc;
     }, {});
     updatePrices(productPrices);
+    calculateTotalPrice(productPrices);
+    setTotalItems(Object.values(JSON.parse(localStorage.cart)).reduce((a, b) => a + b, 0));
   };
 
   const addToCart = (productName) => {
@@ -92,6 +96,7 @@ const StorePage = ({ goToCart }) => {
       newStoredProducts[productName] = (prevStoredProducts[productName] || 0) + 1;
       localStorage.setItem('cart', JSON.stringify(newStoredProducts));
       updateTotalItems(newStoredProducts);
+      calculateTotalPrice();
       return newStoredProducts;
     });
   };
@@ -104,85 +109,99 @@ const StorePage = ({ goToCart }) => {
 
       // Save favorites to local storage
       localStorage.setItem('favorites', JSON.stringify(newFavoriteMedicines));
-
       return newFavoriteMedicines;
     });
   };
 
   const sortedProducts = useMemo(() => {
-    let sortedProducts = Object.values(products[selectedShopId] || []).filter(
-      (product) => favoriteMedicines.includes(product.name) || sortBy !== 'favorites'
+    const favoriteProducts = Object.values(products[selectedShopId] || []).filter(
+      (product) => favoriteMedicines.includes(product.name)
     );
-
+    const nonFavoriteProducts = Object.values(products[selectedShopId] || []).filter(
+      (product) => !favoriteMedicines.includes(product.name)
+    );
+  
+    let sortedFavoriteProducts = [...favoriteProducts];
+    let sortedNonFavoriteProducts = [...nonFavoriteProducts];
+  
     if (sortBy === 'price') {
-      sortedProducts = sortByPrice(sortedProducts, sortOrder);
+      sortedFavoriteProducts = sortByPrice(sortedFavoriteProducts, sortOrder);
+      sortedNonFavoriteProducts = sortByPrice(sortedNonFavoriteProducts, sortOrder);
     } else if (sortBy === 'dateAdded') {
-      sortedProducts = sortByDateAdded(sortedProducts, sortOrder);
+      sortedFavoriteProducts = sortByDateAdded(sortedFavoriteProducts, sortOrder);
+      sortedNonFavoriteProducts = sortByDateAdded(sortedNonFavoriteProducts, sortOrder);
     }
-
-    return sortedProducts;
+  
+    return [...sortedFavoriteProducts, ...sortedNonFavoriteProducts];
   }, [products, selectedShopId, favoriteMedicines, sortBy, sortOrder]);
 
   return (
     <div className="store-page">
-      <h1>Store</h1>
-      <label htmlFor="shopSelect">Select a Shop:</label>
-      <select
-        id="shopSelect"
-        value={selectedShopId}
-        onChange={(e) => {
-          setSelectedShopId(e.target.value);
-          getProducts(e.target.value);
-        }}
-      >
-        {shops.length > 0 ? (
-          shops.map((shop) => (
-            <option key={shop._id} value={shop._id}>
-              {shop.name}
-            </option>
-          ))
-        ) : (
-          <option disabled>No shops found</option>
-        )}
-      </select>
       <div>
-        <label htmlFor="sortBy">Sort by:</label>
-        <select
-          id="sortBy"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          <option value="">None</option>
-          <option value="price">Price</option>
-          <option value="dateAdded">Date Added</option>
-          <option value="favorites">Favorites</option>
-        </select>
-        <label htmlFor="sortOrder">Order:</label>
-        <select
-          id="sortOrder"
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-        >
-          <option value="asc">Ascending</option>
-          <option value="desc">Descending</option>
-        </select>
+        <label htmlFor="shopSelect">Select a Shop:</label>
+        { shops.length > 0 ?
+            <select
+            id="shopSelect"
+            value={selectedShopId}
+            onChange={(e) => {
+              setSelectedShopId(e.target.value);
+              getProducts(e.target.value);
+            }}>
+            {shops.map((shop) => (
+              <option key={shop._id} value={shop._id}>
+                {shop.name}
+              </option>
+            ))}
+          </select>
+          : 
+            <select id="shopSelect" disabled>
+              <option selected>No shops found</option>
+            </select>
+        }
       </div>
-
-      <div className="product-list">
-        {sortedProducts.map((product, index) => (
-          <Product
-            key={index}
-            product={product}
-            favoriteMedicines={favoriteMedicines}
-            toggleFavorite={toggleFavorite}
-            addToCart={addToCart}
-          />
-        ))}
+      {shops.length > 0 && 
+        <div>
+          <div className='sorting'>
+            <div>
+              <label htmlFor="sortBy">Sort by:</label>
+              <select
+                id="sortBy"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="">None</option>
+                <option value="price">Price</option>
+                <option value="dateAdded">Date Added</option>
+                <option value="favorites">Favorites</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="sortOrder">Order:</label>
+              <select
+                id="sortOrder"
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+              >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </div>
+          </div>
+          <div className="product-list">
+            {sortedProducts.map((product, index) => (
+              <Product
+                key={index}
+                product={product}
+                favoriteMedicines={favoriteMedicines}
+                toggleFavorite={toggleFavorite}
+                addToCart={addToCart}
+              />
+            ))}
+          </div>
+          <Link className='return-store-button' to="/cart">Go to Cart (Total: {total}$ - {totalItems} items)</Link>
+        </div>
+        }
       </div>
-      <button className='return-store-button' onClick={goToCart}>
-        Go to Cart (Total: {total}$ - {totalItems} items)
-      </button>
-    </div>
   );
 };
 

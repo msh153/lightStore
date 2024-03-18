@@ -65,7 +65,7 @@ const StorePage = () => {
     }
     
     const getAllShops = async () => {
-      const response = await fetch('http://localhost:3001/getShopIds');
+      const response = await fetch('/api/getShopIds');
       const data = await response.json();
       setShops(data);
       if (data.length > 0) {
@@ -78,7 +78,7 @@ const StorePage = () => {
 
   const getProducts = async (id) => {
     if (!id || products[id]) return;
-    const response = await fetch(`http://localhost:3001/getDrugs?shopvalue=${id}`);
+    const response = await fetch(`/api/getDrugs?shopvalue=${id}`);
     const data = await response.json();
     setProducts((prevProducts) => ({ ...prevProducts, [id]: data }));
     const productPrices = data.reduce((acc, product) => {

@@ -60,7 +60,7 @@ function ShippingCardPage() {
   
   const submitCart = async () => {
     try {
-      const response = await fetch('http://localhost:3001/saveCart', {
+      const response = await fetch('/api/saveCart', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

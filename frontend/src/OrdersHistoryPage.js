@@ -23,7 +23,7 @@ const OrdersHistoryPage = () => {
   
   const fetchOrders = async () => {
     try {
-      const response = await fetch('http://localhost:3001/getOrders', {
+      const response = await fetch('/api/getOrders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -60,7 +60,6 @@ const OrdersHistoryPage = () => {
       <ul>
         {orders.map((order) => (
           <li key={order._id}>
-            <div>Order ID: {order._id}</div>
             <div>Email: {order.email}</div>
             <div>Phone Number: {order.phoneNumber}</div>
             <div>Address: {order.address}</div>
@@ -69,7 +68,7 @@ const OrdersHistoryPage = () => {
                 {
                   Object.entries(order.products).map(([medication, quantity]) => {
                     const totalCost = quantity * prices[medication];
-                    return <li>${medication}: ${quantity} x $${prices[medication].toFixed(2)} = $${totalCost.toFixed(2)}</li>;
+                    return <li>${medication}: {quantity} x $${prices[medication].toFixed(2)} = $${totalCost.toFixed(2)}</li>;
                   })
                   }
                 </ol>
